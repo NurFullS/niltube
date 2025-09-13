@@ -69,7 +69,7 @@ export default function VideoToVideo() {
                     </div>
 
                     <div>
-                        <h2 className="text-lg mt-1 text-white">{video.videoName}</h2>
+                        <h2 className="text-[16px] mt-1 text-white max-w-40 line-clamp-2">{video.videoName}</h2>
                         <p className="text-[16px] text-gray-400">{video.ownerUsername}</p>
                         <p className="text-white mb-1 w-80 overflow-hidden text-ellipsis whitespace-nowrap">
                             {video.videoDescription}

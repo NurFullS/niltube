@@ -85,7 +85,7 @@ export default function CustomVideoPlayer({ src, poster }: Props) {
 
   return (
     <div className="relative w-full max-w-5xl mx-auto bg-black rounded-lg overflow-hidden shadow-lg">
-      {/* Видео с 16:9 */}
+
       <div className="relative w-220 pb-[56.25%] bg-black">
         <video
           ref={videoRef}
@@ -101,9 +101,8 @@ export default function CustomVideoPlayer({ src, poster }: Props) {
           }}
         />
 
-        {/* Контролы, как на YouTube */}
         <div className="absolute bottom-0 left-0 w-full p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col gap-2">
-          {/* Прогрессбар */}
+
           <input
             type="range"
             min="0"
@@ -113,7 +112,6 @@ export default function CustomVideoPlayer({ src, poster }: Props) {
             className="w-full h-1 accent-blue-500 cursor-pointer"
           />
 
-          {/* Кнопки */}
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center space-x-3">
               <button onClick={togglePlay} className="hover:text-blue-400">

@@ -148,7 +148,7 @@ export default function VideoUploadForm() {
                 <img
                   src={imagePreviewUrl}
                   alt="Превью"
-                  className="mt-2 w-50 h-32 rounded-xl object-cover shadow-md"
+                  className="mt-2 w-50 h-32 rounded-xl object-contain shadow-md"
                 />
               )}
             </div>
