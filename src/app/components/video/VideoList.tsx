@@ -5,23 +5,37 @@ import React, { useEffect, useState, useRef } from "react"
 import { Video } from "@/app/types/video"
 import Header from "../body/Header"
 
-export default function VideoList() {
-  const [videos, setVideos] = useState<Video[]>([])
+interface VideoListProps {
+  initialVideos?: Video[]
+}
+
+export default function VideoList({ initialVideos = [] }: VideoListProps) {
+  const [videos, setVideos] = useState<Video[]>(initialVideos)
   const router = useRouter()
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({})
 
+  // Только для обычного списка всех видео
   useEffect(() => {
-    fetch("http://localhost:8080/video/videos", { credentials: "include" })
-      .then(res => res.json())
-      .then(data => setVideos(shuffleArray(data)))
-      .catch(err => console.error(err))
-  }, [])
+    if (!initialVideos || initialVideos.length === 0) {
+      fetch("http://localhost:8080/video/videos", { credentials: "include" })
+        .then(res => res.json())
+        .then(data => setVideos(shuffleArray(data)))
+        .catch(err => console.error(err))
+    }
+  }, []) // убрали зависимость initialVideos
+
+  // При изменении initialVideos (например, поиск)
+  useEffect(() => {
+    if (initialVideos && initialVideos.length > 0) {
+      setVideos(initialVideos)
+    }
+  }, [initialVideos])
 
   function shuffleArray<T>(array: T[]): T[] {
     const newArray = [...array]
     for (let i = newArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-        ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+      ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
     }
     return newArray
   }
@@ -48,6 +62,7 @@ export default function VideoList() {
       <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {videos.map(video => (
           <div key={video.id} className="space-y-2 cursor-pointer text-white">
+            {/* Видео */}
             <div
               className="relative w-full pb-[56.25%] bg-black rounded overflow-hidden"
               onClick={() => router.push(`/video/${video.id}`)}
@@ -58,9 +73,7 @@ export default function VideoList() {
                 className="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-300 hover:opacity-0"
               />
               <video
-                ref={el => {
-                  videoRefs.current[video.id] = el
-                }}
+                ref={el => { videoRefs.current[video.id] = el! }}
                 src={video.videoUrl}
                 className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
                 muted
@@ -75,10 +88,8 @@ export default function VideoList() {
                   }
                 }}
               />
-
             </div>
 
-            {/* Информация о видео */}
             <div className="flex items-start gap-3">
               <img
                 className="w-10 h-10 rounded-full object-cover"
@@ -87,7 +98,7 @@ export default function VideoList() {
               />
               <div className="flex flex-col">
                 <h2 className="text-[16px] font-bold text-white line-clamp-2">{video.videoName}</h2>
-                <p className="text-[14px] text-gray-400">{video.ownerUsername}</p>
+                <p className="text-[14px] text-gray-400">{video.ownerUsername || 'Автор неизвестен'}</p>
                 <p className="text-xs text-gray-400">Вышел: {timeAgo(video.created_at)}</p>
               </div>
             </div>
