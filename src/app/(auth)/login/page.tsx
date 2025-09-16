@@ -4,30 +4,49 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
+import Modal from '@/app/styles/Modal' // твой компонент модала
 
 export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [modalMessage, setModalMessage] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const API = process.env.NEXT_PUBLIC_API_ON_BACKEND
+
+  const showModal = (message: string) => {
+    setModalMessage(message)
+    setIsModalOpen(true)
+    setTimeout(() => setIsModalOpen(false), 5000) // закрытие через 5 секунд
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       setLoading(true)
       const res = await axios.post(
-        'http://localhost:8080/auth/login',
+        `${API}/auth/login`,
         { email, password },
         { withCredentials: true }
       )
       setEmail('')
       setPassword('')
-      setMessage('Добро пожаловать, ' + res.data.username)
-      setTimeout(() => router.replace('/'), 1000)
+      showModal('Добро пожаловать, ' + res.data.username)
+      setTimeout(() => router.replace('/'), 1500)
     } catch (err: any) {
-      setMessage('Ошибка: ' + (err.response?.data?.message || err.message))
+      if (err.response) {
+        if (err.response.status === 429) {
+          showModal('Вы временно заблокированы. Попробуйте через минуту.')
+        } else if (err.response.status === 401) {
+          showModal('Неверный email или пароль')
+        } else {
+          showModal('Ошибка: ' + (err.response.data?.message || 'Что-то пошло не так'))
+        }
+      } else {
+        showModal('Сервер недоступен')
+      }
     } finally {
       setLoading(false)
     }
@@ -55,7 +74,6 @@ export default function Login() {
           />
         </div>
 
-        {/* Пароль */}
         <div className="relative">
           <label className="block text-gray-700 mb-1">Пароль</label>
           <input
@@ -73,16 +91,6 @@ export default function Login() {
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </span>
         </div>
-
-        {message && (
-          <div
-            className={`font-medium ${
-              message.startsWith('Добро') ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {message}
-          </div>
-        )}
 
         <button
           type="submit"
@@ -102,6 +110,14 @@ export default function Login() {
           </span>
         </p>
       </form>
+
+      {modalMessage && (
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <div className="text-center font-bold text-[16px] text-white">
+            {modalMessage}
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

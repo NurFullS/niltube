@@ -5,6 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { User } from "../types/user";
 import Logo from "../components/body/Logo";
+import Modal from "../styles/Modal";
 
 export default function VideoUploadForm() {
   const router = useRouter();
@@ -17,12 +18,15 @@ export default function VideoUploadForm() {
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const API = process.env.NEXT_PUBLIC_API_ON_BACKEND;
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const resUser = await axios.get("http://localhost:8080/auth/me", {
-          withCredentials: true,
-        });
+        const resUser = await axios.get(`${API}/auth/me`, { withCredentials: true });
         if (!resUser.data) router.replace("/");
         else setUser(resUser.data);
       } catch {
@@ -48,9 +52,18 @@ export default function VideoUploadForm() {
     } else setImagePreviewUrl(null);
   }, [previewFile]);
 
+  const showModal = (message: string) => {
+    setModalMessage(message);
+    setIsModalOpen(true);
+    setTimeout(() => setIsModalOpen(false), 4000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!videoFile || !videoName) return alert("Видео и название обязательны!");
+    if (!videoFile || !videoName) {
+      showModal("Видео и название обязательны!");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", videoFile);
@@ -60,21 +73,23 @@ export default function VideoUploadForm() {
 
     try {
       setLoading(true);
-      await axios.post("http://localhost:8080/video/video-upload", formData, {
-        withCredentials: true,
-      });
-      alert("Видео загружено!");
-      router.push("/");
+      await axios.post(`${API}/video/video-upload`, formData, { withCredentials: true });
+
+      showModal("Видео успешно загружено!");
+
+      setVideoFile(null);
+      setPreviewFile(null);
+      setVideoName("");
+      setVideoDescription("");
     } catch (error) {
       console.error(error);
-      alert("Ошибка загрузки! Посмотри консоль для деталей.");
+      showModal("Ошибка загрузки! Посмотри консоль для деталей.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user)
-    return <div className="p-6 text-center text-white text-lg">Загрузка...</div>;
+  if (!user) return <div className="p-6 text-center text-white text-lg">Загрузка...</div>;
 
   return (
     <>
@@ -84,10 +99,7 @@ export default function VideoUploadForm() {
           Загрузка видео
         </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col md:flex-row gap-8"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-8">
           <div className="flex-1 flex flex-col gap-4">
             <input
               type="text"
@@ -105,7 +117,6 @@ export default function VideoUploadForm() {
             />
             <button
               type="submit"
-              onClick={(e) => handleSubmit(e)}
               disabled={loading}
               className="bg-blue-500 hover:bg-blue-600 text-white w-50 cursor-pointer font-bold py-3 px-10 rounded-xl shadow-lg transition disabled:opacity-50 mt-5"
             >
@@ -115,9 +126,7 @@ export default function VideoUploadForm() {
 
           <div className="flex-1 flex flex-col gap-6">
             <div>
-              <label className="font-semibold text-white mb-2 block">
-                Выберите видео:
-              </label>
+              <label className="font-semibold text-white mb-2 block">Выберите видео:</label>
               <input
                 type="file"
                 accept="video/*"
@@ -133,11 +142,8 @@ export default function VideoUploadForm() {
               )}
             </div>
 
-            {/* Превью */}
             <div>
-              <label className="font-semibold text-white mb-2 block">
-                Превью:
-              </label>
+              <label className="font-semibold text-white mb-2 block">Превью:</label>
               <input
                 type="file"
                 accept="image/*"
@@ -154,8 +160,15 @@ export default function VideoUploadForm() {
             </div>
           </div>
         </form>
-
       </div>
+
+      {modalMessage && (
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <div className="text-center text-white font-bold text-[16px]">
+            {modalMessage}
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

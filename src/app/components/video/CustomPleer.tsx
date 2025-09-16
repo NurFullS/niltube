@@ -33,15 +33,19 @@ export default function CustomVideoPlayer({ src, poster }: Props) {
 
   const handleTimeUpdate = () => {
     const video = videoRef.current
-    if (!video) return
-    setProgress((video.currentTime / video.duration) * 100)
-    setCurrentTime(video.currentTime)
+    if (!video || !isFinite(video.duration) || video.duration === 0) return
+
+    const current = video.currentTime
+    const percent = (current / video.duration) * 100
+    setProgress(percent)
+    setCurrentTime(current)
     setDuration(video.duration)
   }
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !isFinite(video.duration) || video.duration === 0) return
+
     const value = Number(e.target.value)
     video.currentTime = (value / 100) * video.duration
     setProgress(value)
@@ -81,11 +85,22 @@ export default function CustomVideoPlayer({ src, poster }: Props) {
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [isPlaying, isMuted, toggleFullscreen])
+  }, [isPlaying, isMuted])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const handleLoadedMetadata = () => {
+      if (isFinite(video.duration)) setDuration(video.duration)
+    }
+
+    video.addEventListener("loadedmetadata", handleLoadedMetadata)
+    return () => video.removeEventListener("loadedmetadata", handleLoadedMetadata)
+  }, [])
 
   return (
     <div className="relative w-full max-w-5xl mx-auto bg-black rounded-lg overflow-hidden shadow-lg">
-
       <div className="relative w-220 pb-[56.25%] bg-black">
         <video
           ref={videoRef}
@@ -95,14 +110,13 @@ export default function CustomVideoPlayer({ src, poster }: Props) {
           onTimeUpdate={handleTimeUpdate}
           onClick={togglePlay}
           onEnded={() => {
-            setIsPlaying(false)
             setProgress(0)
             setCurrentTime(0)
+            setIsPlaying(false)
           }}
         />
 
         <div className="absolute bottom-0 left-0 w-full p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col gap-2">
-
           <input
             type="range"
             min="0"

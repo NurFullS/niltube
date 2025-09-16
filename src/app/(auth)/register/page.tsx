@@ -4,39 +4,49 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
+import Modal from '@/app/styles/Modal' // Твой модал
 
 export default function Register() {
   const router = useRouter()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [modalMessage, setModalMessage] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const API = process.env.NEXT_PUBLIC_API_ON_BACKEND
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
+  const showModal = (message: string) => {
+    setModalMessage(message)
+    setIsModalOpen(true)
+    setTimeout(() => setIsModalOpen(false), 5000)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (username.length < 3) return setMessage('Имя минимум 3 символа')
-    if (!validateEmail(email)) return setMessage('Неверный email')
-    if (password.length < 6) return setMessage('Пароль минимум 6 символов')
+    if (username.length < 3) return showModal('Имя минимум 3 символа')
+    if (!validateEmail(email)) return showModal('Неверный email')
+    if (password.length < 6) return showModal('Пароль минимум 6 символов')
 
     try {
       setLoading(true)
-      const res = await axios.post('http://localhost:8080/auth/register', {
+      const res = await axios.post(`${API}/auth/register`, {
         username,
         email,
         password,
       })
-      setMessage('Пользователь зарегистрирован: ' + res.data.username)
+      showModal('Пользователь зарегистрирован: ' + res.data.username)
+
       setUsername('')
       setEmail('')
       setPassword('')
       setTimeout(() => router.replace('/login'), 1500)
     } catch (err: any) {
-      setMessage('Ошибка: ' + (err.response?.data?.message || err.message))
+      showModal('Ошибка: ' + (err.response?.data?.message || err.message))
     } finally {
       setLoading(false)
     }
@@ -81,7 +91,7 @@ export default function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full p-3 rounded-lg outline-none border border-gray-300"
+            className="w-full p-3 rounded-lg border border-gray-300 outline-none"
           />
           <span
             className="absolute right-3 top-11 cursor-pointer text-gray-500 hover:text-blue-500"
@@ -90,15 +100,6 @@ export default function Register() {
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </span>
         </div>
-
-        {message && (
-          <div
-            className={`font-medium ${message.startsWith('Пользователь') ? 'text-green-600' : 'text-red-600'
-              }`}
-          >
-            {message}
-          </div>
-        )}
 
         <button
           type="submit"
@@ -118,6 +119,14 @@ export default function Register() {
           </span>
         </p>
       </form>
+
+      {modalMessage && (
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <div className={`text-center font-bold text-[16px] text-white`}>
+            {modalMessage}
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

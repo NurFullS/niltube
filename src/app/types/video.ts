@@ -10,4 +10,5 @@ export type Video = {
     ownerEmail: string
     ownerAvatar: string
     created_at: string
+    timeAgo: number;
 }

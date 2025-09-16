@@ -9,11 +9,12 @@ const Header = () => {
   const [user, setUser] = useState<User | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const router = useRouter();
+  const API = process.env.NEXT_PUBLIC_API_ON_BACKEND
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const resUser = await axios.get('http://localhost:8080/auth/me', {
+        const resUser = await axios.get(`${API}/auth/me`, {
           withCredentials: true
         })
         setUser(resUser.data)
@@ -40,7 +41,7 @@ const Header = () => {
 
   return (
     <header>
-      <div className='flex justify-around mt-2'>
+      <div className='flex justify-around mt-3'>
         <h1
           className='text-blue-400 font-bold text-2xl items-center cursor-pointer'
           onClick={() => router.push('/')}

@@ -15,9 +15,10 @@ type Video = {
 export default function VideoToVideo() {
     const [videos, setVideos] = useState<Video[]>([])
     const router = useRouter()
+    const API = process.env.NEXT_PUBLIC_API_ON_BACKEND
 
     useEffect(() => {
-        fetch("http://localhost:8080/video/videos", {
+        fetch(`${API}/video/videos`, {
             credentials: "include"
         })
             .then(res => res.json())
@@ -45,7 +46,7 @@ export default function VideoToVideo() {
         const newArray = [...array]
         for (let i = newArray.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1))
-            ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+                ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
         }
         return newArray
     }
@@ -54,12 +55,12 @@ export default function VideoToVideo() {
 
     return (
         <div className="p-4">
-            {videos.map(video => (
-                <div key={video.id} className="flex max-h-30 mb-5">
+            {videos.map((video) =>
+                <div key={`${video.id}`} className="flex max-h-30 mb-5">
 
                     <div
                         className="relative ml-5 mr-5 rounded overflow-hidden cursor-pointer"
-                        onClick={() => router.push(`/video/${video.id}`)}
+                        onClick={() => router.push(`/video/${encodeURIComponent(video.videoName)}`)}
                     >
                         <img
                             src={video.videoPreview}
@@ -70,14 +71,14 @@ export default function VideoToVideo() {
 
                     <div>
                         <h2 className="text-[16px] mt-1 text-white max-w-40 line-clamp-2">{video.videoName}</h2>
-                        <p className="text-[16px] text-gray-400">{video.ownerUsername}</p>
+                        <p className="text-[16px] text-gray-400  hover:text-gray-300 cursor-pointer" onClick={() => router.push(`/profile/${video.ownerUsername}`)}>{video.ownerUsername}</p>
                         <p className="text-white mb-1 w-80 overflow-hidden text-ellipsis whitespace-nowrap">
                             {video.videoDescription}
                         </p>
                         <p className="text-xs text-gray-400">Вышел: {timeAgo(video.created_at)}</p>
                     </div>
                 </div>
-            ))}
+            )}
         </div>
     )
 }
