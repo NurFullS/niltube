@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
-import Modal from '@/app/styles/Modal' // твой компонент модала
+import Modal from '@/app/styles/Modal'
 
 export default function Login() {
   const router = useRouter()
@@ -19,7 +19,7 @@ export default function Login() {
   const showModal = (message: string) => {
     setModalMessage(message)
     setIsModalOpen(true)
-    setTimeout(() => setIsModalOpen(false), 5000) // закрытие через 5 секунд
+    setTimeout(() => setIsModalOpen(false), 4000)
   }
 
   const handleLogin = async (e: React.FormEvent) => {

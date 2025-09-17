@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import Logo from '../components/body/Logo'
-import { Video } from '../types/video'
+import Logo from '@/app/components/body/Logo'
+import { Video } from '@/app/types/video'
 import { useRouter } from 'next/navigation'
 import { Trash, Settings } from 'lucide-react'
 
